@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Logtime</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="SignIn">SignIn</string>
+    <string name="Timesheet">Timesheet</string>
+    <string name="Home">Home</string>
+    <string name="Sign_out">Sign out</string>
+    <string name="Clients">Clients</string>
+    <string name="Projects">Projects</string>
+    <string name="Holidays">Holidays</string>
+    <string name="Update_Details">Update Details</string>
+    <string name="ListingTimesheets">Listing Timesheets</string>
+    <string name="action_settings">Settings</string>
+    <string name="Signout">Sign out</string>
+    <string name="Project_id">Project id</string>
+    <string name="Hours">Hours</string>
+    <string name="Date">Date</string>
+    <string name="Standup_detail">Standup_details</string>
+</resources>
