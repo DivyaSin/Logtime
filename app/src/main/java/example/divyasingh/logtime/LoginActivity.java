@@ -1,5 +1,6 @@
 package example.divyasingh.logtime;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -10,83 +11,94 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import example.divyasingh.logtime.Models.LoginResponse;
-import example.divyasingh.logtime.Interface.LoginService;
-import example.divyasingh.logtime.Models.RetrofitAdapter;
 import example.divyasingh.logtime.Models.UserRequest;
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import example.divyasingh.logtime.api.ApiProvider;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+import static example.divyasingh.logtime.Models.UserRequest.User;
 
 public class LoginActivity extends AppCompatActivity {
 
-    public static final String BASE_URL = "https://try-mblt.herokuapp.com";
+    @Bind(R.id.email_id)
+    EditText emailInput;
+
+    @Bind(R.id.password)
+    EditText passwordInput;
+
+    @Bind(R.id.button)
+    Button signInButton;
+
+    Call<LoginResponse> mResponse;
 
     String email, password;
-    EditText Email, Password;
-    Button signInButton;
-    ProgressBar mProgress;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        Email = (EditText) findViewById(R.id.email_id);
-        Password = (EditText) findViewById(R.id.password);
-        mProgress = (ProgressBar) findViewById(R.id.progressBar);
-        mProgress.setVisibility(View.INVISIBLE);
 
-        signInButton = (Button) findViewById(R.id.button);
-        signInButton.setOnClickListener(new View.OnClickListener() {
+        if (LocalStorage.getInstance().isLoggedIn()) {
+            // redirect to home screen
+            Intent home_intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(home_intent);
+            finish();
+        } else {
+            setContentView(R.layout.activity_login);
+            ButterKnife.bind(this);
 
-            public void onClick(View view) {
+            signInButton.setOnClickListener(new View.OnClickListener() {
 
-                if (Email.getText().length() == 0 || Password.getText().length() == 0) {
+                public void onClick(View view) {
+                    if (emailInput.getText().length() == 0 || passwordInput.getText().length() == 0) {
+                        Toast.makeText(getApplicationContext(), "Fill the missing field", Toast.LENGTH_SHORT).show();
+                    } else {
+                        email = emailInput.getText().toString();
+                        password = passwordInput.getText().toString();
 
-                    Toast.makeText(getApplicationContext(), "Fill the missing field", Toast.LENGTH_SHORT).show();
+                        User user = new User();
+                        user.setEmail(email);
+                        user.setPassword(password);
 
-                } else {
-                    email = Email.getText().toString();
-                    password = Password.getText().toString();
+                        UserRequest userRequest = new UserRequest();
+                        userRequest.setUser(user);
 
-                    RestAdapter restAdapter = RetrofitAdapter.getRestAdapter();
-                    LoginService mLoginService = restAdapter.create(LoginService.class);
+                        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this);
+                        progressDialog.setMessage(getString(R.string.Loading));
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
 
-                    UserRequest userRequest = new UserRequest();
-
-                    UserRequest.User user = new UserRequest.User();
-                    user.setEmail(email);
-                    user.setPassword(password);
-                    userRequest.setUser(user);
-                    mProgress.setVisibility(View.VISIBLE);
-
-                    mLoginService.login(userRequest, new Callback<LoginResponse>() {
-                        @Override
-                        public void success(LoginResponse loginResponse, Response response) {
-
-                            Log.v("MainActivity", loginResponse.toString());
-                            Intent i = new Intent(LoginActivity.this, TimesheetActivity.class);
-                            i.putExtra("authenticationToken", loginResponse.getAuthentication_token());
-                            i.putExtra("email", loginResponse.getUser().getEmail());
-                            Log.v("MainActivity", loginResponse.getAuthentication_token());
-                            mProgress.setVisibility(View.INVISIBLE);
-                            startActivity(i);
-                        }
-
-                        @Override
-                        public void failure(RetrofitError error) {
-                            mProgress.setVisibility(View.INVISIBLE);
-                            Toast.makeText(LoginActivity.this, "Try again", Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
+                        mResponse = ApiProvider.getService().login("application/json", userRequest);
+                        mResponse.enqueue(new Callback<LoginResponse>() {
+                            @Override
+                            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                                if (response.isSuccessful()) {
+                                    LocalStorage.getInstance().setLoggedIn(true);
+                                    LocalStorage.getInstance().setEmail(response.body().getUser().getEmail());
+                                    LocalStorage.getInstance().setName(response.body().getUser().getName());
+                                    LocalStorage.getInstance().setAuthToken(response.body().getAuthentication_token());
+                                    Intent i = new Intent(LoginActivity.this, MainActivity.class);
+                                    progressDialog.dismiss();
+                                    startActivity(i);
+                                } else {
+                                    Log.v("LoginResponse", response.errorBody().toString());
+                                }
+                            }
+                            @Override
+                            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                                progressDialog.dismiss();
+                                Toast.makeText(LoginActivity.this, "Try again", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }
+
 

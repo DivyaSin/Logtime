@@ -3,14 +3,18 @@
     package="example.divyasingh.logtime">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
     <application
+        android:name=".LogTimeApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".LoginActivity"
             android:screenOrientation="portrait">
@@ -20,9 +24,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".TimesheetActivity"
-            android:screenOrientation="portrait" />
+        <activity android:name=".CreateTimesheetActivity" />
+        <activity android:name=".BaseToolBarActivity" />
+        <activity android:name=".BaseActivity" />
+        <activity android:name=".DisplayTimesheetsActivity" />
+        <activity android:name=".ClientDetailsActivity"/>
+        <activity android:name=".CreateClientActivity"/>
+        <activity android:name=".ClientCreatedActivity"/>
+        <activity android:name=".UpdateClientActivity"/>
     </application>
 
 </manifest>
